@@ -205,3 +205,19 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# === Briefcast ===
+# Database & output
+data/*.db
+output/
+*.mp3
+
+# NotebookLM auth
+.notebooklm/
+
+# Google OAuth credentials
+credentials.json
+token.json
+
+# Claude
+CLAUDE.local.md

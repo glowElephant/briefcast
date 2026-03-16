@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Briefcast</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f0f0f;
+            color: #e0e0e0;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid #222;
+        }
+
+        header h1 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: -0.02em;
+        }
+
+        header h1 span { color: #7c5cff; }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .btn-primary {
+            background: #7c5cff;
+            color: #fff;
+        }
+
+        .btn-primary:hover { background: #6a4ae0; }
+
+        .btn-danger {
+            background: transparent;
+            color: #ff5c5c;
+            border: 1px solid #ff5c5c33;
+        }
+
+        .btn-danger:hover { background: #ff5c5c15; }
+
+        .btn-ghost {
+            background: #1a1a1a;
+            color: #aaa;
+            border: 1px solid #333;
+        }
+
+        .btn-ghost:hover { background: #252525; color: #fff; }
+
+        .btn-run {
+            background: #1a3a1a;
+            color: #5cff7c;
+            border: 1px solid #5cff7c33;
+        }
+
+        .btn-run:hover { background: #1a4a1a; }
+
+        .btn-sm { padding: 0.35rem 0.7rem; font-size: 0.8rem; }
+
+        /* Sections */
+        section { margin-bottom: 2.5rem; }
+
+        section h2 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #ccc;
+        }
+
+        /* Topic form */
+        .topic-form {
+            display: none;
+            background: #161616;
+            border: 1px solid #252525;
+            border-radius: 10px;
+            padding: 1.2rem;
+            margin-bottom: 1rem;
+        }
+
+        .topic-form.active { display: block; }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.8rem;
+            margin-bottom: 0.8rem;
+        }
+
+        .form-row.full { grid-template-columns: 1fr; }
+
+        label {
+            display: block;
+            font-size: 0.78rem;
+            color: #888;
+            margin-bottom: 0.3rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 0.55rem 0.8rem;
+            background: #0f0f0f;
+            border: 1px solid #333;
+            border-radius: 6px;
+            color: #e0e0e0;
+            font-size: 0.9rem;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #7c5cff;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: flex-end;
+            margin-top: 0.5rem;
+        }
+
+        /* Topic list */
+        .topic-card {
+            background: #161616;
+            border: 1px solid #222;
+            border-radius: 10px;
+            padding: 1rem 1.2rem;
+            margin-bottom: 0.6rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: border-color 0.15s;
+        }
+
+        .topic-card:hover { border-color: #333; }
+
+        .topic-info h3 {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 0.25rem;
+        }
+
+        .topic-info p {
+            font-size: 0.8rem;
+            color: #666;
+        }
+
+        .topic-info .query { color: #7c5cff99; }
+
+        .topic-actions {
+            display: flex;
+            gap: 0.4rem;
+            align-items: center;
+        }
+
+        .toggle {
+            position: relative;
+            width: 38px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .toggle input { display: none; }
+
+        .toggle .slider {
+            position: absolute;
+            inset: 0;
+            background: #333;
+            border-radius: 20px;
+            transition: 0.2s;
+        }
+
+        .toggle .slider::before {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            left: 2px;
+            bottom: 2px;
+            background: #888;
+            border-radius: 50%;
+            transition: 0.2s;
+        }
+
+        .toggle input:checked + .slider { background: #7c5cff44; }
+        .toggle input:checked + .slider::before {
+            transform: translateX(18px);
+            background: #7c5cff;
+        }
+
+        /* Episodes */
+        .episode-list { display: flex; flex-direction: column; gap: 0.4rem; }
+
+        .episode {
+            display: grid;
+            grid-template-columns: 140px 1fr 90px 100px;
+            gap: 1rem;
+            align-items: center;
+            background: #161616;
+            border: 1px solid #222;
+            border-radius: 8px;
+            padding: 0.8rem 1.2rem;
+            font-size: 0.85rem;
+        }
+
+        .episode .date { color: #888; font-variant-numeric: tabular-nums; }
+        .episode .topic-name { color: #e0e0e0; font-weight: 500; }
+
+        .status {
+            padding: 0.2rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-align: center;
+        }
+
+        .status-completed { background: #1a3a1a; color: #5cff7c; }
+        .status-running { background: #3a3a1a; color: #ffcc5c; }
+        .status-failed { background: #3a1a1a; color: #ff5c5c; }
+        .status-pending { background: #1a1a2a; color: #5c8cff; }
+
+        .episode .articles { color: #666; text-align: right; }
+
+        .empty {
+            text-align: center;
+            padding: 3rem;
+            color: #444;
+            font-size: 0.9rem;
+        }
+
+        .header-actions { display: flex; gap: 0.5rem; }
+
+        @media (max-width: 640px) {
+            .form-row { grid-template-columns: 1fr; }
+            .episode { grid-template-columns: 1fr 1fr; gap: 0.4rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Brief<span>cast</span></h1>
+            <div class="header-actions">
+                <button class="btn btn-run btn-sm" onclick="runAll()">Run All</button>
+                <button class="btn btn-primary btn-sm" onclick="toggleForm()">+ New Topic</button>
+            </div>
+        </header>
+
+        <!-- Topic Form -->
+        <div class="topic-form" id="topicForm">
+            <div class="form-row">
+                <div>
+                    <label>Topic Name</label>
+                    <input type="text" id="topicName" placeholder="AI News">
+                </div>
+                <div>
+                    <label>Search Query</label>
+                    <input type="text" id="topicQuery" placeholder="artificial intelligence news 2026">
+                </div>
+            </div>
+            <div class="form-row">
+                <div>
+                    <label>Languages</label>
+                    <input type="text" id="topicLangs" value="ko,en" placeholder="ko,en">
+                </div>
+                <div></div>
+            </div>
+            <div class="form-actions">
+                <button class="btn btn-ghost btn-sm" onclick="toggleForm()">Cancel</button>
+                <button class="btn btn-primary btn-sm" onclick="saveTopic()">Save</button>
+            </div>
+        </div>
+
+        <!-- Topics -->
+        <section>
+            <h2>Topics</h2>
+            <div id="topicList">
+                {% if topics %}
+                    {% for t in topics %}
+                    <div class="topic-card" data-id="{{ t.id }}">
+                        <div class="topic-info">
+                            <h3>{{ t.name }}</h3>
+                            <p><span class="query">{{ t.query }}</span> &middot; {{ t.languages }}</p>
+                        </div>
+                        <div class="topic-actions">
+                            <button class="btn btn-run btn-sm" onclick="runTopic({{ t.id }})" title="Run now">Run</button>
+                            <label class="toggle">
+                                <input type="checkbox" {{ 'checked' if t.enabled else '' }}
+                                       onchange="toggleTopic({{ t.id }}, this.checked)">
+                                <span class="slider"></span>
+                            </label>
+                            <button class="btn btn-danger btn-sm" onclick="deleteTopic({{ t.id }})">Del</button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty">No topics yet. Add one to get started.</div>
+                {% endif %}
+            </div>
+        </section>
+
+        <!-- Episodes -->
+        <section>
+            <h2>Recent Episodes</h2>
+            <div class="episode-list" id="episodeList">
+                {% if episodes %}
+                    {% for ep in episodes %}
+                    <div class="episode">
+                        <span class="date">{{ ep.date }}</span>
+                        <span class="topic-name">{{ ep.topic_name }}</span>
+                        <span class="status status-{{ ep.status }}">{{ ep.status }}</span>
+                        <span class="articles">{{ ep.articles_count or 0 }} articles</span>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty">No episodes yet. Episodes will appear here after the first run.</div>
+                {% endif %}
+            </div>
+        </section>
+    </div>
+
+    <script>
+        function toggleForm() {
+            document.getElementById('topicForm').classList.toggle('active');
+        }
+
+        async function saveTopic() {
+            const name = document.getElementById('topicName').value.trim();
+            const query = document.getElementById('topicQuery').value.trim();
+            const languages = document.getElementById('topicLangs').value.trim();
+            if (!name || !query) return alert('Name and Query are required.');
+
+            const res = await fetch('/api/topics', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({name, query, languages}),
+            });
+            if (res.ok) location.reload();
+            else alert('Failed to save topic.');
+        }
+
+        async function deleteTopic(id) {
+            if (!confirm('Delete this topic?')) return;
+            const res = await fetch(`/api/topics/${id}`, {method: 'DELETE'});
+            if (res.ok) location.reload();
+        }
+
+        async function toggleTopic(id, enabled) {
+            await fetch(`/api/topics/${id}`, {
+                method: 'PUT',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({enabled: enabled ? 1 : 0}),
+            });
+        }
+
+        async function runTopic(id) {
+            const res = await fetch(`/api/run/${id}`, {method: 'POST'});
+            const data = await res.json();
+            alert(data.message);
+        }
+
+        async function runAll() {
+            const res = await fetch('/api/run-all', {method: 'POST'});
+            const data = await res.json();
+            alert(data.message);
+        }
+
+        // Auto-refresh every 30s
+        setTimeout(() => location.reload(), 30000);
+    </script>
+</body>
+</html>
