@@ -1,11 +1,25 @@
 """NotebookLM 팟캐스트 생성 모듈."""
 
-import asyncio
 import logging
 from datetime import datetime, timezone
 from pathlib import Path
 
+from notebooklm.types import AudioFormat, AudioLength
+
 logger = logging.getLogger(__name__)
+
+AUDIO_FORMAT_MAP = {
+    "DEEP_DIVE": AudioFormat.DEEP_DIVE,
+    "BRIEF": AudioFormat.BRIEF,
+    "CRITIQUE": AudioFormat.CRITIQUE,
+    "DEBATE": AudioFormat.DEBATE,
+}
+
+AUDIO_LENGTH_MAP = {
+    "SHORT": AudioLength.SHORT,
+    "DEFAULT": AudioLength.DEFAULT,
+    "LONG": AudioLength.LONG,
+}
 
 KST = timezone(offset=__import__("datetime").timedelta(hours=9))
 
@@ -50,46 +64,42 @@ async def generate_podcast(
 
             # 2. 기사를 소스로 추가
             for i, article in enumerate(articles_text):
-                text = f"# {article['title']}\n\n{article['body']}"
-                src = await client.sources.add_text(
-                    nb.id, text, title=article["title"]
+                body = article["body"]
+                title = article["title"]
+                await client.sources.add_text(
+                    nb.id, title, f"# {title}\n\n{body}",
+                    wait=True, wait_timeout=120,
                 )
-                await client.sources.wait_until_ready(
-                    nb.id, src.id, timeout_seconds=120
-                )
-                logger.info("소스 추가 (%d/%d): %s", i + 1, len(articles_text), article["title"][:50])
-                await asyncio.sleep(1)
+                logger.info("소스 추가 (%d/%d): %s", i + 1, len(articles_text), title[:50])
 
             # 3. 오디오 생성
-            logger.info("오디오 생성 시작 (포맷=%s, 길이=%s)...", audio_format, audio_length)
+            fmt = AUDIO_FORMAT_MAP.get(audio_format, AudioFormat.DEEP_DIVE)
+            length = AUDIO_LENGTH_MAP.get(audio_length, AudioLength.DEFAULT)
+            logger.info("오디오 생성 시작 (포맷=%s, 길이=%s)...", fmt.name, length.name)
             status = await client.artifacts.generate_audio(
                 nb.id,
-                audio_format=audio_format,
-                audio_length=audio_length,
+                audio_format=fmt,
+                audio_length=length,
             )
 
-            # 4. 생성 완료 대기
-            timeout = 600  # 10분
-            elapsed = 0
-            poll_interval = 10
-            while status.status == "GENERATING" and elapsed < timeout:
-                await asyncio.sleep(poll_interval)
-                elapsed += poll_interval
-                status = await client.artifacts.poll(nb.id, status.artifact_id)
-                logger.debug("오디오 생성 중... (%ds)", elapsed)
+            # 4. 완료 대기 (내장 poll 사용)
+            status = await client.artifacts.wait_for_completion(
+                nb.id, status.task_id, timeout=600,
+            )
+            logger.info("오디오 생성 결과: %s", status.status)
 
-            if status.status != "COMPLETED":
-                logger.error("오디오 생성 실패: status=%s", status.status)
+            if status.status != "completed":
+                logger.error("오디오 생성 실패: status=%s, error=%s", status.status, status.error)
                 return None
 
-            # 5. MP3 다운로드
-            audio_bytes = await client.artifacts.download_audio(
-                nb.id, status.artifact_id
+            # 5. MP3 다운로드 (파일 경로에 직접 저장)
+            saved_path = await client.artifacts.download_audio(
+                nb.id, str(output_path),
             )
-            output_path.write_bytes(audio_bytes)
-            logger.info("MP3 저장: %s (%.1fMB)", output_path, len(audio_bytes) / 1024 / 1024)
+            file_size = output_path.stat().st_size
+            logger.info("MP3 저장: %s (%.1fMB)", saved_path, file_size / 1024 / 1024)
 
-            # 6. 노트북 정리 (선택)
+            # 6. 노트북 정리
             try:
                 await client.notebooks.delete(nb.id)
                 logger.info("노트북 삭제 완료: %s", nb.id)
