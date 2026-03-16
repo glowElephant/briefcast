@@ -78,6 +78,7 @@ async def generate_podcast(
             logger.info("오디오 생성 시작 (포맷=%s, 길이=%s)...", fmt.name, length.name)
             status = await client.artifacts.generate_audio(
                 nb.id,
+                language="ko",
                 audio_format=fmt,
                 audio_length=length,
             )

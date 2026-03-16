@@ -18,8 +18,10 @@ from core.database import (
     update_topic,
     delete_topic,
     get_episodes,
+    get_settings,
+    update_settings,
 )
-from core.scheduler import create_scheduler, run_pipeline, run_all_topics
+from core.scheduler import create_scheduler, run_pipeline, run_all_topics, reschedule
 
 load_dotenv()
 
@@ -57,9 +59,10 @@ async def dashboard(request: Request):
     """대시보드 페이지."""
     topics = await get_topics()
     episodes = await get_episodes(limit=30)
+    settings = await get_settings()
     return templates.TemplateResponse(
         "dashboard.html",
-        {"request": request, "topics": topics, "episodes": episodes},
+        {"request": request, "topics": topics, "episodes": episodes, "settings": settings},
     )
 
 
@@ -134,9 +137,35 @@ async def api_run_all():
     return JSONResponse({"message": "전체 실행 시작"})
 
 
+# === API: Settings ===
+
+@app.get("/api/settings")
+async def api_get_settings():
+    """설정 조회."""
+    settings = await get_settings()
+    return JSONResponse(settings)
+
+
+@app.put("/api/settings")
+async def api_update_settings(request: Request):
+    """설정 업데이트."""
+    data = await request.json()
+    await update_settings(data)
+
+    # 스케줄 시간 변경 시 즉시 반영
+    if "schedule_hour" in data or "schedule_minute" in data:
+        settings = await get_settings()
+        hour = int(settings.get("schedule_hour", "6"))
+        minute = int(settings.get("schedule_minute", "0"))
+        await reschedule(hour, minute)
+
+    return JSONResponse({"message": "설정 저장 완료"})
+
+
 if __name__ == "__main__":
     import uvicorn
 
     host = os.getenv("HOST", "0.0.0.0")
     port = int(os.getenv("PORT", "8585"))
-    uvicorn.run("server:app", host=host, port=port, reload=True)
+    reload = os.getenv("BRIEFCAST_RELOAD", "false").lower() == "true"
+    uvicorn.run("server:app", host=host, port=port, reload=reload)

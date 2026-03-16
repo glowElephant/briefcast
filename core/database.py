@@ -45,11 +45,25 @@ CREATE TABLE IF NOT EXISTS settings (
 """
 
 
+DEFAULT_SETTINGS = {
+    "schedule_hour": "6",
+    "schedule_minute": "0",
+    "audio_format": "DEEP_DIVE",
+    "audio_length": "DEFAULT",
+}
+
+
 async def init_db():
     """데이터베이스 초기화."""
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     async with aiosqlite.connect(DB_PATH) as db:
         await db.executescript(SCHEMA)
+        # 기본 설정 삽입
+        for key, value in DEFAULT_SETTINGS.items():
+            await db.execute(
+                "INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)",
+                (key, value),
+            )
         await db.commit()
     logger.info("DB 초기화 완료: %s", DB_PATH)
 
@@ -148,6 +162,33 @@ async def update_episode(episode_id: int, **kwargs) -> None:
     db = await get_db()
     try:
         await db.execute(f"UPDATE episodes SET {sets} WHERE id = ?", values)
+        await db.commit()
+    finally:
+        await db.close()
+
+
+# === Settings ===
+
+async def get_settings() -> dict[str, str]:
+    """전체 설정 조회."""
+    db = await get_db()
+    try:
+        cursor = await db.execute("SELECT key, value FROM settings")
+        rows = await cursor.fetchall()
+        return {r["key"]: r["value"] for r in rows}
+    finally:
+        await db.close()
+
+
+async def update_settings(settings: dict[str, str]) -> None:
+    """설정 업데이트."""
+    db = await get_db()
+    try:
+        for key, value in settings.items():
+            await db.execute(
+                "INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)",
+                (key, value),
+            )
         await db.commit()
     finally:
         await db.close()
