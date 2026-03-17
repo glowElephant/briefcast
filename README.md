@@ -4,6 +4,14 @@
 
 Google News, DuckDuckGo에서 최근 24시간 뉴스를 수집하고, NotebookLM으로 한국어 팟캐스트 오디오를 생성하여 Google Drive에 저장한다.
 
+## 스크린샷
+
+![Briefcast 대시보드](screenshots/dashboard.png)
+> 채널 관리 · 26종 주제 토글 · 스케줄 설정 · 커스텀 토픽 · 포맷/길이 선택
+
+---
+
+
 ## 기능
 
 - **채널 기반 관리** — 채널별 독립 스케줄, 주제 조합, 오디오 설정
