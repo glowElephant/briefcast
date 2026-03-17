@@ -56,21 +56,45 @@ async def generate_podcast(
     filename = f"{now.strftime('%Y%m%d')}_{safe_topic}.mp3"
     output_path = output_dir / filename
 
+    # NotebookLM 소스 제한: 기사를 그룹으로 묶어서 최대 MAX_SOURCES개 소스로 추가
+    MAX_SOURCES = 15
+
     try:
         async with await NotebookLMClient.from_storage() as client:
             # 1. 노트북 생성
             nb = await client.notebooks.create(notebook_name)
             logger.info("노트북 생성: %s (id=%s)", notebook_name, nb.id)
 
-            # 2. 기사를 소스로 추가
-            for i, article in enumerate(articles_text):
-                body = article["body"]
-                title = article["title"]
-                await client.sources.add_text(
-                    nb.id, title, f"# {title}\n\n{body}",
-                    wait=True, wait_timeout=120,
-                )
-                logger.info("소스 추가 (%d/%d): %s", i + 1, len(articles_text), title[:50])
+            # 2. 기사를 소스로 추가 (여러 기사를 하나의 소스로 묶음)
+            if len(articles_text) <= MAX_SOURCES:
+                # 기사가 적으면 개별 소스로
+                for i, article in enumerate(articles_text):
+                    body = article["body"]
+                    title = article["title"]
+                    await client.sources.add_text(
+                        nb.id, title, f"# {title}\n\n{body}",
+                        wait=True, wait_timeout=120,
+                    )
+                    logger.info("소스 추가 (%d/%d): %s", i + 1, len(articles_text), title[:50])
+            else:
+                # 기사를 MAX_SOURCES개 그룹으로 묶어서 추가
+                group_size = (len(articles_text) + MAX_SOURCES - 1) // MAX_SOURCES
+                for i in range(0, len(articles_text), group_size):
+                    group = articles_text[i : i + group_size]
+                    group_num = i // group_size + 1
+                    total_groups = (len(articles_text) + group_size - 1) // group_size
+                    combined = "\n\n---\n\n".join(
+                        f"# {a['title']}\n\n{a['body']}" for a in group
+                    )
+                    titles = ", ".join(a["title"][:20] for a in group)
+                    await client.sources.add_text(
+                        nb.id, f"뉴스 모음 {group_num}", combined,
+                        wait=True, wait_timeout=120,
+                    )
+                    logger.info(
+                        "소스 추가 (%d/%d): %d건 묶음 [%s...]",
+                        group_num, total_groups, len(group), titles[:50],
+                    )
 
             # 3. 오디오 생성
             fmt = AUDIO_FORMAT_MAP.get(audio_format, AudioFormat.DEEP_DIVE)
@@ -81,11 +105,17 @@ async def generate_podcast(
                 language="ko",
                 audio_format=fmt,
                 audio_length=length,
+                instructions=(
+                    "유쾌하고 에너지 넘치는 톤으로 진행해주세요. "
+                    "청취자가 아침에 기분 좋게 들을 수 있도록 "
+                    "밝고 재미있게 뉴스를 전달해주세요. "
+                    "적절한 유머와 위트를 섞어서 대화하세요."
+                ),
             )
 
             # 4. 완료 대기 (내장 poll 사용)
             status = await client.artifacts.wait_for_completion(
-                nb.id, status.task_id, timeout=600,
+                nb.id, status.task_id, timeout=900,
             )
             logger.info("오디오 생성 결과: %s", status.status)
 

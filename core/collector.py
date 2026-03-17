@@ -9,6 +9,7 @@ from datetime import datetime, timedelta, timezone
 import feedparser
 import trafilatura
 from duckduckgo_search import DDGS
+from googlenewsdecoder import new_decoderv1
 
 logger = logging.getLogger(__name__)
 
@@ -86,10 +87,17 @@ async def collect_from_rss(
         source = ""
         if hasattr(entry, "source") and hasattr(entry.source, "title"):
             source = entry.source.title
+        # Google News URL → 실제 기사 URL 변환
+        raw_url = entry.get("link", "")
+        try:
+            result = new_decoderv1(raw_url)
+            actual_url = result.get("decoded_url", raw_url) if result.get("status") else raw_url
+        except Exception:
+            actual_url = raw_url
         articles.append(
             Article(
                 title=entry.get("title", ""),
-                url=entry.get("link", ""),
+                url=actual_url,
                 source=source,
                 published=entry.get("published", ""),
                 collector="rss",
@@ -213,6 +221,23 @@ def _deduplicate(articles: list[Article]) -> list[Article]:
     return unique
 
 
+def _split_query_keywords(query: str, max_words: int = 3) -> list[str]:
+    """긴 검색 쿼리를 짧은 키워드 조합으로 분할.
+
+    Google News RSS는 긴 쿼리에서 결과가 없는 경우가 많아
+    키워드를 max_words개씩 잘라서 여러 번 검색한다.
+    """
+    words = query.split()
+    if len(words) <= max_words:
+        return [query]
+    chunks = []
+    for i in range(0, len(words), max_words):
+        chunk = " ".join(words[i : i + max_words])
+        if chunk:
+            chunks.append(chunk)
+    return chunks
+
+
 async def collect_topic(
     topic: str,
     config: CollectorConfig | None = None,
@@ -221,26 +246,32 @@ async def collect_topic(
     if config is None:
         config = CollectorConfig()
 
-    # 모든 소스 병렬 수집
-    tasks: list = []
-
-    # RSS (언어별)
-    for lang in config.languages:
-        tasks.append(collect_from_rss(topic, lang=lang, max_articles=config.max_articles))
-
-    # DuckDuckGo 뉴스 검색
-    tasks.append(collect_from_search(topic, max_results=5))
-
-    # YouTube 뉴스
-    tasks.append(collect_from_youtube(topic, max_results=5))
-
-    # X (Twitter)
-    tasks.append(collect_from_x(topic, max_results=5))
-
-    results = await asyncio.gather(*tasks)
     all_articles: list[Article] = []
-    for batch in results:
+
+    # 1. RSS 수집 (키워드 분할 + 언어별)
+    rss_tasks = []
+    for keyword_chunk in _split_query_keywords(topic):
+        for lang in config.languages:
+            rss_tasks.append(
+                collect_from_rss(keyword_chunk, lang=lang, max_articles=config.max_articles)
+            )
+    rss_results = await asyncio.gather(*rss_tasks)
+    for batch in rss_results:
         all_articles.extend(batch)
+
+    # 2. DuckDuckGo 계열 (순차 실행 — rate limit 방지)
+    ddg_collectors = [
+        ("search", collect_from_search(topic, max_results=5)),
+        ("youtube", collect_from_youtube(topic, max_results=5)),
+        ("x", collect_from_x(topic, max_results=5)),
+    ]
+    for name, coro in ddg_collectors:
+        try:
+            result = await coro
+            all_articles.extend(result)
+        except Exception as e:
+            logger.warning("DDG %s 수집 실패 (%s): %s", name, topic, e)
+        await asyncio.sleep(1)  # DDG rate limit 방지
 
     articles = _deduplicate(all_articles)
     logger.info("'%s' 수집 완료: %d건 (중복 제거 후)", topic, len(articles))

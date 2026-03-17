@@ -8,6 +8,7 @@ python-multipart==0.0.20
 feedparser==6.0.11
 trafilatura==2.0.0
 duckduckgo-search==7.5.3
+googlenewsdecoder==0.1.7
 
 # NotebookLM
 notebooklm-py[browser]==0.3.4
