@@ -238,6 +238,103 @@ def _split_query_keywords(query: str, max_words: int = 3) -> list[str]:
     return chunks
 
 
+TOPIC_SEARCH_KEYWORDS: dict[str, dict[str, str]] = {
+    # 사용자 맞춤
+    "AI/인공지능": {"ko": "AI 인공지능", "en": "AI artificial intelligence"},
+    "LLM/GPT": {"ko": "LLM GPT 대규모 언어모델", "en": "LLM GPT large language model"},
+    "미국 주식": {"ko": "미국 주식 증시 월가", "en": "US stock market Wall Street"},
+    "테슬라": {"ko": "테슬라 TSLA", "en": "Tesla TSLA"},
+    "엔비디아": {"ko": "엔비디아 NVDA", "en": "Nvidia NVDA"},
+    "구글": {"ko": "구글 알파벳 GOOGL", "en": "Google Alphabet GOOGL"},
+    "환율/원달러": {"ko": "환율 원달러 USD KRW", "en": "USD KRW exchange rate"},
+    "한국 경제": {"ko": "한국 경제 GDP 성장률", "en": "South Korea economy"},
+    "금리": {"ko": "금리 기준금리 한국은행", "en": "interest rate Federal Reserve"},
+    "프로그래밍": {"ko": "프로그래밍 개발자 코딩", "en": "programming developer coding"},
+    "오픈소스": {"ko": "오픈소스 GitHub", "en": "open source GitHub"},
+    "반도체": {"ko": "반도체 삼성전자 SK하이닉스", "en": "semiconductor chip TSMC"},
+    # 대표 카테고리
+    "부동산": {"ko": "부동산 아파트 집값", "en": "real estate housing market"},
+    "암호화폐": {"ko": "암호화폐 비트코인 이더리움", "en": "cryptocurrency Bitcoin Ethereum"},
+    "스타트업": {"ko": "스타트업 벤처 투자", "en": "startup venture funding"},
+    "전기차": {"ko": "전기차 EV 자율주행", "en": "electric vehicle EV autonomous driving"},
+    "클라우드": {"ko": "클라우드 AWS Azure", "en": "cloud computing AWS Azure"},
+    "사이버보안": {"ko": "사이버보안 해킹 보안", "en": "cybersecurity hacking"},
+    "게임": {"ko": "게임 e스포츠", "en": "gaming esports"},
+    "우주/항공": {"ko": "우주 항공 NASA SpaceX", "en": "space NASA SpaceX"},
+    "기후/환경": {"ko": "기후변화 탄소중립 환경", "en": "climate change carbon neutral"},
+    "건강/의료": {"ko": "건강 의료 바이오", "en": "health medical biotech"},
+    "스포츠": {"ko": "스포츠 축구 야구 NBA", "en": "sports MLB NBA soccer"},
+    "K-POP/엔터": {"ko": "K-POP 아이돌 연예", "en": "K-POP idol entertainment"},
+    "정치/시사": {"ko": "정치 국회 대통령", "en": "politics South Korea"},
+    "국제/외교": {"ko": "국제 외교 미중관계", "en": "international diplomacy US China"},
+}
+
+
+async def collect_channel_topics(
+    topic_slugs: list[str],
+    custom_topics: list[str],
+    config: CollectorConfig | None = None,
+) -> list[Article]:
+    """채널의 모든 주제에서 뉴스를 수집한다.
+
+    topic_slugs: 미리 정의된 주제 slug 리스트 (예: ["AI/인공지능", "미국 주식"])
+    custom_topics: 사용자 직접 입력 키워드 리스트 (예: ["베라더믹스"])
+    """
+    if config is None:
+        config = CollectorConfig()
+
+    all_articles: list[Article] = []
+
+    # 1. 미리 정의된 주제별 수집
+    for slug in topic_slugs:
+        keywords = TOPIC_SEARCH_KEYWORDS.get(slug)
+        if not keywords:
+            logger.warning("알 수 없는 주제: %s", slug)
+            continue
+
+        # ko + en 각각 개별 검색
+        for lang, query in keywords.items():
+            for keyword_chunk in _split_query_keywords(query):
+                articles = await collect_from_rss(keyword_chunk, lang=lang, max_articles=config.max_articles)
+                all_articles.extend(articles)
+
+        # DuckDuckGo (ko 키워드로)
+        ko_query = keywords.get("ko", slug)
+        try:
+            result = await collect_from_search(ko_query, max_results=3)
+            all_articles.extend(result)
+        except Exception as e:
+            logger.warning("DDG 뉴스 실패 (%s): %s", slug, e)
+        await asyncio.sleep(1)
+
+    # 2. 커스텀 주제 수집
+    for custom in custom_topics:
+        # 커스텀은 입력된 텍스트 그대로 ko + en 검색
+        for lang in ["ko", "en"]:
+            articles = await collect_from_rss(custom, lang=lang, max_articles=config.max_articles)
+            all_articles.extend(articles)
+
+        try:
+            result = await collect_from_search(custom, max_results=3)
+            all_articles.extend(result)
+        except Exception as e:
+            logger.warning("DDG 뉴스 실패 (%s): %s", custom, e)
+        await asyncio.sleep(1)
+
+    # 중복 제거
+    articles = _deduplicate(all_articles)
+    logger.info("채널 수집 완료: %d건 (중복 제거 후)", len(articles))
+
+    # 본문 추출
+    for article in articles:
+        if not article.body:
+            article.body = await _fetch_article_body(article.url, delay=config.fetch_delay)
+
+    with_body = [a for a in articles if a.body]
+    logger.info("본문 추출: %d/%d건", len(with_body), len(articles))
+    return with_body
+
+
 async def collect_topic(
     topic: str,
     config: CollectorConfig | None = None,

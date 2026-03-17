@@ -85,17 +85,6 @@
         }
 
         /* Forms */
-        .panel {
-            display: none;
-            background: #161616;
-            border: 1px solid #252525;
-            border-radius: 10px;
-            padding: 1.2rem;
-            margin-bottom: 1rem;
-        }
-
-        .panel.active { display: block; }
-
         .form-row {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -131,44 +120,78 @@
             display: flex;
             gap: 0.5rem;
             justify-content: flex-end;
-            margin-top: 0.5rem;
+            margin-top: 0.8rem;
         }
 
-        /* Topic list */
-        .topic-card {
+        /* Channel card */
+        .channel-card {
             background: #161616;
             border: 1px solid #222;
             border-radius: 10px;
-            padding: 1rem 1.2rem;
             margin-bottom: 0.6rem;
+            transition: border-color 0.15s;
+            overflow: hidden;
+        }
+
+        .channel-card:hover { border-color: #333; }
+
+        .channel-summary {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            transition: border-color 0.15s;
+            padding: 1rem 1.2rem;
+            cursor: pointer;
         }
 
-        .topic-card:hover { border-color: #333; }
+        .channel-left {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+            flex: 1;
+            min-width: 0;
+        }
 
-        .topic-info h3 {
+        .channel-header {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .channel-header h3 {
             font-size: 0.95rem;
             font-weight: 600;
             color: #fff;
-            margin-bottom: 0.25rem;
         }
 
-        .topic-info p {
+        .channel-time {
+            font-size: 0.8rem;
+            color: #7c5cff;
+            font-weight: 500;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .channel-topics-preview {
             font-size: 0.8rem;
             color: #666;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
-        .topic-info .query { color: #7c5cff99; }
+        .channel-meta {
+            font-size: 0.75rem;
+            color: #555;
+        }
 
-        .topic-actions {
+        .channel-actions {
             display: flex;
             gap: 0.4rem;
             align-items: center;
+            flex-shrink: 0;
+            margin-left: 1rem;
         }
 
+        /* Toggle switch */
         .toggle {
             position: relative;
             width: 38px;
@@ -204,34 +227,108 @@
             background: #7c5cff;
         }
 
-        /* Settings card */
-        .settings-card {
+        /* Channel edit form (expandable) */
+        .channel-edit {
+            display: none;
+            padding: 0 1.2rem 1.2rem;
+            border-top: 1px solid #222;
+        }
+
+        .channel-edit.active { display: block; }
+
+        .channel-edit .form-row { margin-top: 0.8rem; }
+
+        /* New channel panel */
+        .new-channel-panel {
+            display: none;
             background: #161616;
-            border: 1px solid #222;
+            border: 1px solid #252525;
             border-radius: 10px;
             padding: 1.2rem;
+            margin-bottom: 1rem;
         }
 
-        .settings-row {
+        .new-channel-panel.active { display: block; }
+
+        /* Topic toggles */
+        .topic-toggles {
             display: flex;
-            align-items: center;
-            gap: 1rem;
             flex-wrap: wrap;
+            gap: 0.4rem;
+            margin-bottom: 0.8rem;
         }
 
-        .settings-row .field {
+        .topic-btn {
+            padding: 0.4rem 0.8rem;
+            border: 1px solid #333;
+            border-radius: 20px;
+            background: #1a1a1a;
+            color: #888;
+            font-size: 0.82rem;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .topic-btn.active {
+            background: #7c5cff22;
+            border-color: #7c5cff;
+            color: #b8a5ff;
+        }
+
+        .topic-btn:hover {
+            border-color: #555;
+            color: #ccc;
+        }
+
+        /* Custom topic tags */
+        .custom-topics-wrap {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+            align-items: center;
+            margin-bottom: 0.8rem;
+        }
+
+        .custom-topics-wrap input {
+            flex: 1;
+            min-width: 120px;
+            max-width: 200px;
+        }
+
+        .tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.3rem 0.6rem;
+            background: #2a2a2a;
+            border: 1px solid #444;
+            border-radius: 16px;
+            font-size: 0.82rem;
+            color: #ccc;
+        }
+
+        .tag button {
+            background: none;
+            border: none;
+            color: #888;
+            cursor: pointer;
+            font-size: 0.9rem;
+            padding: 0;
+            line-height: 1;
+        }
+
+        .tag button:hover { color: #ff5c5c; }
+
+        /* Time input group */
+        .time-group {
             display: flex;
             align-items: center;
-            gap: 0.4rem;
+            gap: 0.3rem;
         }
 
-        .settings-row input[type="number"] {
+        .time-group input[type="number"] {
             width: 60px;
             text-align: center;
-        }
-
-        .settings-row select {
-            width: auto;
         }
 
         .time-sep {
@@ -239,15 +336,6 @@
             font-weight: 700;
             color: #666;
         }
-
-        .settings-saved {
-            color: #5cff7c;
-            font-size: 0.8rem;
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-
-        .settings-saved.show { opacity: 1; }
 
         /* Episodes */
         .episode-list { display: flex; flex-direction: column; gap: 0.4rem; }
@@ -265,7 +353,7 @@
         }
 
         .episode .date { color: #888; font-variant-numeric: tabular-nums; }
-        .episode .topic-name { color: #e0e0e0; font-weight: 500; }
+        .episode .channel-name { color: #e0e0e0; font-weight: 500; }
 
         .status {
             padding: 0.2rem 0.6rem;
@@ -291,10 +379,25 @@
 
         .header-actions { display: flex; gap: 0.5rem; }
 
+        /* Expand arrow */
+        .expand-arrow {
+            background: none;
+            border: none;
+            color: #555;
+            font-size: 1rem;
+            cursor: pointer;
+            padding: 0.2rem 0.4rem;
+            transition: transform 0.2s;
+        }
+
+        .expand-arrow:hover { color: #aaa; }
+        .expand-arrow.open { transform: rotate(180deg); }
+
         @media (max-width: 640px) {
             .form-row { grid-template-columns: 1fr; }
             .episode { grid-template-columns: 1fr 1fr; gap: 0.4rem; }
-            .settings-row { flex-direction: column; align-items: flex-start; }
+            .channel-summary { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+            .channel-actions { margin-left: 0; }
         }
     </style>
 </head>
@@ -303,99 +406,104 @@
         <header>
             <h1>Brief<span>cast</span></h1>
             <div class="header-actions">
-                <button class="btn btn-ghost btn-sm" onclick="togglePanel('settingsPanel')">Settings</button>
-                <button class="btn btn-run btn-sm" onclick="runAll()">Run All</button>
-                <button class="btn btn-primary btn-sm" onclick="togglePanel('topicForm')">+ New Topic</button>
+                <button class="btn btn-primary btn-sm" onclick="showNewChannelForm()">+ New Channel</button>
             </div>
         </header>
 
-        <!-- Settings Panel -->
-        <div class="panel" id="settingsPanel">
-            <section style="margin-bottom:0">
-                <h2>Settings</h2>
-                <div class="settings-row">
-                    <div class="field">
-                        <label style="margin:0">Report Time</label>
-                        <input type="number" id="scheduleHour" min="0" max="23"
-                               value="{{ settings.get('schedule_hour', '6') }}">
-                        <span class="time-sep">:</span>
-                        <input type="number" id="scheduleMinute" min="0" max="59"
-                               value="{{ settings.get('schedule_minute', '0') }}">
-                    </div>
-                    <div class="field">
-                        <label style="margin:0">Format</label>
-                        <select id="audioFormat">
-                            {% set cur_fmt = settings.get('audio_format', 'DEEP_DIVE') %}
-                            <option value="DEEP_DIVE" {{ 'selected' if cur_fmt == 'DEEP_DIVE' else '' }}>Deep Dive</option>
-                            <option value="BRIEF" {{ 'selected' if cur_fmt == 'BRIEF' else '' }}>Brief</option>
-                            <option value="CRITIQUE" {{ 'selected' if cur_fmt == 'CRITIQUE' else '' }}>Critique</option>
-                            <option value="DEBATE" {{ 'selected' if cur_fmt == 'DEBATE' else '' }}>Debate</option>
-                        </select>
-                    </div>
-                    <div class="field">
-                        <label style="margin:0">Length</label>
-                        <select id="audioLength">
-                            {% set cur_len = settings.get('audio_length', 'DEFAULT') %}
-                            <option value="SHORT" {{ 'selected' if cur_len == 'SHORT' else '' }}>Short</option>
-                            <option value="DEFAULT" {{ 'selected' if cur_len == 'DEFAULT' else '' }}>Default</option>
-                            <option value="LONG" {{ 'selected' if cur_len == 'LONG' else '' }}>Long</option>
-                        </select>
-                    </div>
-                    <button class="btn btn-primary btn-sm" onclick="saveSettings()">Save</button>
-                    <span class="settings-saved" id="settingsSaved">Saved!</span>
-                </div>
-            </section>
-        </div>
-
-        <!-- Topic Form -->
-        <div class="panel" id="topicForm">
+        <!-- New Channel Form -->
+        <div class="new-channel-panel" id="newChannelPanel">
+            <h2 style="font-size:1rem; font-weight:600; color:#ccc; margin-bottom:0.8rem;">New Channel</h2>
             <div class="form-row">
                 <div>
-                    <label>Topic Name</label>
-                    <input type="text" id="topicName" placeholder="AI News">
+                    <label>Channel Name</label>
+                    <input type="text" id="newChName" placeholder="아침 7시 뉴스">
                 </div>
                 <div>
-                    <label>Search Query</label>
-                    <input type="text" id="topicQuery" placeholder="인공지능 뉴스">
+                    <label>Schedule Time</label>
+                    <div class="time-group">
+                        <input type="number" id="newChHour" min="0" max="23" value="7">
+                        <span class="time-sep">:</span>
+                        <input type="number" id="newChMinute" min="0" max="59" value="0">
+                    </div>
                 </div>
+            </div>
+            <label>Topics</label>
+            <div class="topic-toggles" id="newChTopics"></div>
+            <label>Custom Topics</label>
+            <div class="custom-topics-wrap" id="newChCustom">
+                <input type="text" placeholder="주제 입력 후 Enter" onkeydown="if(event.key==='Enter'){event.preventDefault();addCustomTopic(this);}">
             </div>
             <div class="form-row">
                 <div>
-                    <label>Languages</label>
-                    <input type="text" id="topicLangs" value="ko,en" placeholder="ko,en">
+                    <label>Format</label>
+                    <select id="newChFormat">
+                        <option value="DEEP_DIVE">Deep Dive</option>
+                        <option value="BRIEF">Brief</option>
+                        <option value="CRITIQUE">Critique</option>
+                        <option value="DEBATE">Debate</option>
+                    </select>
                 </div>
-                <div></div>
+                <div>
+                    <label>Length</label>
+                    <select id="newChLength">
+                        <option value="SHORT">Short</option>
+                        <option value="DEFAULT" selected>Default</option>
+                        <option value="LONG">Long</option>
+                    </select>
+                </div>
             </div>
             <div class="form-actions">
-                <button class="btn btn-ghost btn-sm" onclick="togglePanel('topicForm')">Cancel</button>
-                <button class="btn btn-primary btn-sm" onclick="saveTopic()">Save</button>
+                <button class="btn btn-ghost btn-sm" onclick="hideNewChannelForm()">Cancel</button>
+                <button class="btn btn-primary btn-sm" onclick="saveChannel(null)">Save</button>
             </div>
         </div>
 
-        <!-- Topics -->
+        <!-- Channels -->
         <section>
-            <h2>Topics</h2>
-            <div id="topicList">
-                {% if topics %}
-                    {% for t in topics %}
-                    <div class="topic-card" data-id="{{ t.id }}">
-                        <div class="topic-info">
-                            <h3>{{ t.name }}</h3>
-                            <p><span class="query">{{ t.query }}</span> &middot; {{ t.languages }}</p>
+            <h2>Channels</h2>
+            <div id="channelList">
+                {% if channels %}
+                    {% for ch in channels %}
+                    <div class="channel-card" id="channel-{{ ch.id }}"
+                         data-id="{{ ch.id }}"
+                         data-name="{{ ch.name }}"
+                         data-topics='{{ ch.topics | tojson }}'
+                         data-custom='{{ ch.custom_topics | tojson }}'
+                         data-hour="{{ ch.schedule_hour }}"
+                         data-minute="{{ ch.schedule_minute }}"
+                         data-format="{{ ch.audio_format }}"
+                         data-length="{{ ch.audio_length }}"
+                         data-enabled="{{ ch.enabled }}">
+                        <div class="channel-summary" onclick="toggleExpand({{ ch.id }})">
+                            <div class="channel-left">
+                                <div class="channel-header">
+                                    <h3>{{ ch.name }}</h3>
+                                    <span class="channel-time">{{ '%02d' % ch.schedule_hour }}:{{ '%02d' % ch.schedule_minute }}</span>
+                                </div>
+                                <div class="channel-topics-preview">
+                                    {% set all_topics = ch.topics + ch.custom_topics %}
+                                    {{ all_topics | join(' · ') if all_topics else 'No topics' }}
+                                </div>
+                                <div class="channel-meta">{{ ch.audio_format | replace('_', ' ') | title }} · {{ ch.audio_length | title }}</div>
+                            </div>
+                            <div class="channel-actions" onclick="event.stopPropagation()">
+                                <button class="btn btn-run btn-sm" onclick="runChannel({{ ch.id }})">Run</button>
+                                <label class="toggle">
+                                    <input type="checkbox" {{ 'checked' if ch.enabled else '' }}
+                                           onchange="toggleChannel({{ ch.id }}, this.checked)">
+                                    <span class="slider"></span>
+                                </label>
+                                <button class="btn btn-danger btn-sm" onclick="deleteChannel({{ ch.id }})">Del</button>
+                                <button class="expand-arrow" id="arrow-{{ ch.id }}" onclick="event.stopPropagation(); toggleExpand({{ ch.id }})">&#9660;</button>
+                            </div>
                         </div>
-                        <div class="topic-actions">
-                            <button class="btn btn-run btn-sm" onclick="runTopic({{ t.id }})" title="Run now">Run</button>
-                            <label class="toggle">
-                                <input type="checkbox" {{ 'checked' if t.enabled else '' }}
-                                       onchange="toggleTopic({{ t.id }}, this.checked)">
-                                <span class="slider"></span>
-                            </label>
-                            <button class="btn btn-danger btn-sm" onclick="deleteTopic({{ t.id }})">Del</button>
+                        <div class="channel-edit" id="edit-{{ ch.id }}">
+                            <!-- Populated by JS on expand -->
                         </div>
                     </div>
                     {% endfor %}
                 {% else %}
-                    <div class="empty">No topics yet. Add one to get started.</div>
+                    <div class="empty">No channels yet. Create one to get started.</div>
                 {% endif %}
             </div>
         </section>
@@ -408,7 +516,7 @@
                     {% for ep in episodes %}
                     <div class="episode">
                         <span class="date">{{ ep.date }}</span>
-                        <span class="topic-name">{{ ep.topic_name }}</span>
+                        <span class="channel-name">{{ ep.channel_name or ep.topic_name or '-' }}</span>
                         <span class="status status-{{ ep.status }}">{{ ep.status }}</span>
                         <span class="articles">{{ ep.articles_count or 0 }} articles</span>
                     </div>
@@ -421,72 +529,252 @@
     </div>
 
     <script>
-        function togglePanel(id) {
-            document.querySelectorAll('.panel').forEach(p => {
-                if (p.id !== id) p.classList.remove('active');
-            });
-            document.getElementById(id).classList.toggle('active');
+        let availableTopics = [];
+
+        async function loadAvailableTopics() {
+            try {
+                const res = await fetch('/api/available-topics');
+                availableTopics = await res.json();
+            } catch (e) {
+                console.error('Failed to load available topics:', e);
+            }
+            // Render toggles in new channel form
+            renderTopicToggles('newChTopics', []);
         }
 
-        async function saveTopic() {
-            const name = document.getElementById('topicName').value.trim();
-            const query = document.getElementById('topicQuery').value.trim();
-            const languages = document.getElementById('topicLangs').value.trim();
-            if (!name || !query) return alert('Name and Query are required.');
+        function renderTopicToggles(containerId, activeTopics) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            availableTopics.forEach(topic => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'topic-btn' + (activeTopics.includes(topic) ? ' active' : '');
+                btn.textContent = topic;
+                btn.onclick = function() { this.classList.toggle('active'); };
+                container.appendChild(btn);
+            });
+        }
 
-            const res = await fetch('/api/topics', {
-                method: 'POST',
+        function renderCustomTags(containerId, customTopics) {
+            const container = document.getElementById(containerId);
+            // Remove existing tags but keep input
+            container.querySelectorAll('.tag').forEach(t => t.remove());
+            const input = container.querySelector('input');
+            customTopics.forEach(topic => {
+                const tag = document.createElement('span');
+                tag.className = 'tag';
+                tag.innerHTML = topic + ' <button onclick="this.parentElement.remove()">&times;</button>';
+                container.insertBefore(tag, input);
+            });
+        }
+
+        function addCustomTopic(input) {
+            const val = input.value.trim();
+            if (!val) return;
+            const tag = document.createElement('span');
+            tag.className = 'tag';
+            tag.innerHTML = val + ' <button onclick="this.parentElement.remove()">&times;</button>';
+            input.parentElement.insertBefore(tag, input);
+            input.value = '';
+        }
+
+        function showNewChannelForm() {
+            const panel = document.getElementById('newChannelPanel');
+            panel.classList.toggle('active');
+            if (panel.classList.contains('active')) {
+                renderTopicToggles('newChTopics', []);
+            }
+        }
+
+        function hideNewChannelForm() {
+            document.getElementById('newChannelPanel').classList.remove('active');
+        }
+
+        function toggleExpand(id) {
+            const editDiv = document.getElementById('edit-' + id);
+            const arrow = document.getElementById('arrow-' + id);
+            const isOpen = editDiv.classList.contains('active');
+
+            // Close all others
+            document.querySelectorAll('.channel-edit.active').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.expand-arrow.open').forEach(el => el.classList.remove('open'));
+
+            if (!isOpen) {
+                editDiv.classList.add('active');
+                arrow.classList.add('open');
+                populateEditForm(id);
+            }
+        }
+
+        function populateEditForm(id) {
+            const card = document.getElementById('channel-' + id);
+            const editDiv = document.getElementById('edit-' + id);
+            const name = card.dataset.name;
+            const topics = JSON.parse(card.dataset.topics || '[]');
+            const custom = JSON.parse(card.dataset.custom || '[]');
+            const hour = card.dataset.hour;
+            const minute = card.dataset.minute;
+            const format = card.dataset.format;
+            const length = card.dataset.length;
+
+            editDiv.innerHTML = `
+                <div class="form-row">
+                    <div>
+                        <label>Channel Name</label>
+                        <input type="text" id="editName-${id}" value="${escapeAttr(name)}">
+                    </div>
+                    <div>
+                        <label>Schedule Time</label>
+                        <div class="time-group">
+                            <input type="number" id="editHour-${id}" min="0" max="23" value="${hour}">
+                            <span class="time-sep">:</span>
+                            <input type="number" id="editMinute-${id}" min="0" max="59" value="${minute}">
+                        </div>
+                    </div>
+                </div>
+                <label>Topics</label>
+                <div class="topic-toggles" id="editTopics-${id}"></div>
+                <label>Custom Topics</label>
+                <div class="custom-topics-wrap" id="editCustom-${id}">
+                    <input type="text" placeholder="주제 입력 후 Enter" onkeydown="if(event.key==='Enter'){event.preventDefault();addCustomTopic(this);}">
+                </div>
+                <div class="form-row">
+                    <div>
+                        <label>Format</label>
+                        <select id="editFormat-${id}">
+                            <option value="DEEP_DIVE" ${format==='DEEP_DIVE'?'selected':''}>Deep Dive</option>
+                            <option value="BRIEF" ${format==='BRIEF'?'selected':''}>Brief</option>
+                            <option value="CRITIQUE" ${format==='CRITIQUE'?'selected':''}>Critique</option>
+                            <option value="DEBATE" ${format==='DEBATE'?'selected':''}>Debate</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Length</label>
+                        <select id="editLength-${id}">
+                            <option value="SHORT" ${length==='SHORT'?'selected':''}>Short</option>
+                            <option value="DEFAULT" ${length==='DEFAULT'?'selected':''}>Default</option>
+                            <option value="LONG" ${length==='LONG'?'selected':''}>Long</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button class="btn btn-ghost btn-sm" onclick="toggleExpand(${id})">Cancel</button>
+                    <button class="btn btn-primary btn-sm" onclick="saveChannel(${id})">Save</button>
+                </div>
+            `;
+
+            renderTopicToggles('editTopics-' + id, topics);
+            renderCustomTags('editCustom-' + id, custom);
+        }
+
+        function escapeAttr(str) {
+            return str.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        }
+
+        function collectFormData(prefix, channelId) {
+            const suffix = channelId !== null ? '-' + channelId : '';
+            const idPrefix = channelId !== null ? 'edit' : 'newCh';
+
+            const name = document.getElementById(idPrefix + 'Name' + suffix).value.trim();
+            const hour = document.getElementById(idPrefix + 'Hour' + suffix).value;
+            const minute = document.getElementById(idPrefix + 'Minute' + suffix).value;
+            const format = document.getElementById(idPrefix + 'Format' + suffix).value;
+            const length = document.getElementById(idPrefix + 'Length' + suffix).value;
+
+            const topicContainerId = channelId !== null ? 'editTopics-' + channelId : 'newChTopics';
+            const customContainerId = channelId !== null ? 'editCustom-' + channelId : 'newChCustom';
+
+            const topics = [];
+            document.querySelectorAll('#' + topicContainerId + ' .topic-btn.active').forEach(btn => {
+                topics.push(btn.textContent);
+            });
+
+            const customTopics = [];
+            document.querySelectorAll('#' + customContainerId + ' .tag').forEach(tag => {
+                customTopics.push(tag.firstChild.textContent.trim());
+            });
+
+            return { name, schedule_hour: parseInt(hour), schedule_minute: parseInt(minute),
+                     topics, custom_topics: customTopics, audio_format: format, audio_length: length };
+        }
+
+        async function saveChannel(channelId) {
+            let data;
+            if (channelId !== null) {
+                const name = document.getElementById('editName-' + channelId).value.trim();
+                const hour = document.getElementById('editHour-' + channelId).value;
+                const minute = document.getElementById('editMinute-' + channelId).value;
+                const format = document.getElementById('editFormat-' + channelId).value;
+                const length = document.getElementById('editLength-' + channelId).value;
+
+                const topics = [];
+                document.querySelectorAll('#editTopics-' + channelId + ' .topic-btn.active').forEach(btn => {
+                    topics.push(btn.textContent);
+                });
+                const customTopics = [];
+                document.querySelectorAll('#editCustom-' + channelId + ' .tag').forEach(tag => {
+                    customTopics.push(tag.firstChild.textContent.trim());
+                });
+
+                data = { name, schedule_hour: parseInt(hour), schedule_minute: parseInt(minute),
+                         topics, custom_topics: customTopics, audio_format: format, audio_length: length };
+            } else {
+                const name = document.getElementById('newChName').value.trim();
+                const hour = document.getElementById('newChHour').value;
+                const minute = document.getElementById('newChMinute').value;
+                const format = document.getElementById('newChFormat').value;
+                const length = document.getElementById('newChLength').value;
+
+                const topics = [];
+                document.querySelectorAll('#newChTopics .topic-btn.active').forEach(btn => {
+                    topics.push(btn.textContent);
+                });
+                const customTopics = [];
+                document.querySelectorAll('#newChCustom .tag').forEach(tag => {
+                    customTopics.push(tag.firstChild.textContent.trim());
+                });
+
+                data = { name, schedule_hour: parseInt(hour), schedule_minute: parseInt(minute),
+                         topics, custom_topics: customTopics, audio_format: format, audio_length: length };
+            }
+
+            if (!data.name) return alert('채널 이름을 입력하세요.');
+            if (data.topics.length === 0 && data.custom_topics.length === 0) return alert('주제를 최소 1개 선택하세요.');
+
+            const url = channelId !== null ? '/api/channels/' + channelId : '/api/channels';
+            const method = channelId !== null ? 'PUT' : 'POST';
+
+            const res = await fetch(url, {
+                method,
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({name, query, languages}),
+                body: JSON.stringify(data),
             });
             if (res.ok) location.reload();
-            else alert('Failed to save topic.');
+            else alert('저장 실패');
         }
 
-        async function deleteTopic(id) {
-            if (!confirm('Delete this topic?')) return;
-            const res = await fetch(`/api/topics/${id}`, {method: 'DELETE'});
+        async function deleteChannel(id) {
+            if (!confirm('이 채널을 삭제하시겠습니까?')) return;
+            const res = await fetch('/api/channels/' + id, {method: 'DELETE'});
             if (res.ok) location.reload();
         }
 
-        async function toggleTopic(id, enabled) {
-            await fetch(`/api/topics/${id}`, {
+        async function toggleChannel(id, enabled) {
+            await fetch('/api/channels/' + id, {
                 method: 'PUT',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({enabled: enabled ? 1 : 0}),
             });
         }
 
-        async function runTopic(id) {
-            const res = await fetch(`/api/run/${id}`, {method: 'POST'});
+        async function runChannel(id) {
+            const res = await fetch('/api/run/' + id, {method: 'POST'});
             const data = await res.json();
             alert(data.message);
         }
 
-        async function runAll() {
-            const res = await fetch('/api/run-all', {method: 'POST'});
-            const data = await res.json();
-            alert(data.message);
-        }
-
-        async function saveSettings() {
-            const data = {
-                schedule_hour: document.getElementById('scheduleHour').value,
-                schedule_minute: document.getElementById('scheduleMinute').value,
-                audio_format: document.getElementById('audioFormat').value,
-                audio_length: document.getElementById('audioLength').value,
-            };
-            const res = await fetch('/api/settings', {
-                method: 'PUT',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(data),
-            });
-            if (res.ok) {
-                const el = document.getElementById('settingsSaved');
-                el.classList.add('show');
-                setTimeout(() => el.classList.remove('show'), 2000);
-            }
-        }
+        // Init
+        loadAvailableTopics();
 
         // Auto-refresh every 30s
         setTimeout(() => location.reload(), 30000);
