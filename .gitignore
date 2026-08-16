@@ -209,6 +209,7 @@ __marimo__/
 # === Briefcast ===
 # Database & output
 data/*.db
+data/*.db.bak
 output/
 *.mp3
 
